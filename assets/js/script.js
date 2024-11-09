@@ -68,7 +68,7 @@ const musicData = [
     album: "Mac Undercover-Part01",
     year: 2022,
     artist: "Mac Undercover-Part01",
-    musicPath: "./assets/storybooks/Bear Bottom/Mac Undercover-Part01.mp3",
+    musicPath: "./assets/storybooks/Mac Undercover/Mac Undercover-Part01.mp3",
   },
   {
     backgroundImage: "./assets/storybooks/Mac Undercover/Mac Undercover-Cover.jpg",
@@ -77,7 +77,7 @@ const musicData = [
     album: "Mac Undercover-Part02",
     year: 2022,
     artist: "Mac Undercover-Part02",
-    musicPath: "./assets/storybooks/Bear Bottom/Mac Undercover-Part02.mp3",
+    musicPath: "./assets/storybooks/Mac Undercover/Mac Undercover-Part02.mp3",
   },
 ];
 
