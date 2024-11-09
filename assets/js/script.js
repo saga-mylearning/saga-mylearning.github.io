@@ -8,6 +8,15 @@
 
 const musicData = [
   {
+    backgroundImage: "./assets/storybooks/Bear Bottom/Bear Bottom-Cover.jpg",
+    posterUrl: "./assets/storybooks/Bear Bottom/Bear Bottom-Cover.jpg",
+    title: "Bear Bottom-Part01",
+    album: "Bear Bottom-Part01",
+    year: 2022,
+    artist: "Bear Bottom-Part01",
+    musicPath: "./assets/storybooks/Bear Bottom/Bear Bottom-Part01.mp3",
+  },
+  {
     backgroundImage: "./assets/images/poster-1.jpg",
     posterUrl: "./assets/images/poster-1.jpg",
     title: "Happy Moments (Master)",
