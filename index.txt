@@ -16,17 +16,17 @@ Music Player
 
 #---------- PLAYER ----------#
 
-alt = Happy Moments (Master) Album Poster
+alt = Bear Bottom (Story Book) Album Poster
 
-Happy Moments (Master)
+Bear Bottom (Story Book)
 
-No Spirit
+A fun jungle novel
 2022
 
-No Spirit x Tonion
+Read by Gibson
 
 0:00
-1:00
+62:00
 
 <span class="material-symbols-rounded">volume_up</span>
 

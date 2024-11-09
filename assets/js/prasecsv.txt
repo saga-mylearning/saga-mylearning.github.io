@@ -1,3 +1,24 @@
+     Get-ChildItem -PATH . -Recurse | % { $_.FullName } | Convertto-Json | Out-File file-new.json | Set-Content
+    
+    1) Get an array of cells by splitting the string on the carriage return (rows), then using map to return an new array based on the row split on the spaces.
+
+var cells = str.split('\n').map(function (el) { return el.split(/\s+/); });
+2) Headings are the first nested array in cells.
+
+var headings = cells.shift();
+3) map over the cells building and returning a new object based on the values.
+
+var obj = cells.map(function (el) {
+  var obj = {};
+  for (var i = 0, l = el.length; i < l; i++) {
+    obj[headings[i]] = isNaN(Number(el[i])) ? el[i] : +el[i];
+  }
+  return obj;
+});
+4) Stringify the returned object.
+
+var json = JSON.stringify(obj);
+    
     public function incsv() {
         $file = 'C:\mydocs\incsv.csv';
         $content = file($file);
