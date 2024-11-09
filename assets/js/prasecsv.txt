@@ -1,0 +1,47 @@
+    public function incsv() {
+        $file = 'C:\mydocs\incsv.csv';
+        $content = file($file);
+        $array = array();
+
+        for ($i = 1; $i < count($content); $i++) {
+            $line = explode(',', $content[$i]);
+            for ($j = 0; $j < count($line); $j++) {
+                $array[$i][$j + 1] = $line[$j];
+            }
+        }
+
+        $k = count($array) + 1;
+
+        for ($i = 1; $i < $k; $i++) {
+            $tdate = new \DateTime($array[$i][2]);
+            $ndate = $tdate->format('Y-m-d');
+            $descraw = $array[$i][8];
+            $descspace = preg_replace('/[^a-z\d ]/i', '', $descraw);
+            $desc = preg_replace('/^\s+|\s+$|\s+(?=\s)/', '', $descspace);
+            $amt = (float) $array[$i][3];
+            $namt = number_format($amt, 2, '.', '');
+            if ($namt < 0) {
+                $wd = $namt * -1;
+                $dep = 0;
+            } else {
+                $wd = 0;
+                $dep = $namt;
+            }
+
+            $maxid = $this->Check->getMaxid();
+            $checkid = $maxid + 1;
+
+            $data = [
+                'checkid' => $checkid,
+                'transdate' => $ndate,
+                'transdescribe' => $desc,
+                'widthdraw' => $wd,
+                'deposit' => $dep
+            ];
+            $this->Check->insertCsv($data);
+        }
+
+        $this->Check->checkRecalc();
+        Url::redirect('check/index');
+    }
+
