@@ -62,25 +62,39 @@ const musicData = [
     musicPath: "./assets/storybooks/Bear Bottom/Bear Bottom-Part06.mp3",
   },
   {
-    backgroundImage: "./assets/storybooks/Mac Undercover/Mac Undercover-Cover.jpg",
-    posterUrl: "./assets/storybooks/Mac Undercover/Mac Undercover-Cover.jpg",
+    backgroundImage: "./assets/storybooks/Mac B., Kid Spy Series - Books 1-6 - Mac Barnett/1 Mac B., Kid Spy Series - Books 1-6 - Mac Barnett/1 Mac Undercover-Cover.jpg",
+    posterUrl: "./assets/storybooks/Mac B., Kid Spy Series - Books 1-6 - Mac Barnett/1 Mac Undercover/Mac Undercover-Cover.jpg",
     title: "Mac Undercover-Part01",
     album: "Mac Undercover-Part01",
     year: 2022,
     artist: "Mac Undercover-Part01",
-    musicPath: "./assets/storybooks/Mac Undercover/Mac Undercover-Part01.mp3",
+    musicPath: "./assets/storybooks/Mac B., Kid Spy Series - Books 1-6 - Mac Barnett/1 Mac Undercover/Mac Undercover-Part01.mp3",
   },
   {
-    backgroundImage: "./assets/storybooks/Mac Undercover/Mac Undercover-Cover.jpg",
-    posterUrl: "./assets/storybooks/Mac Undercover/Mac Undercover-Cover.jpg",
+    backgroundImage: "./assets/storybooks/Mac B., Kid Spy Series - Books 1-6 - Mac Barnett/1 Mac Undercover/Mac Undercover-Cover.jpg",
+    posterUrl: "./assets/storybooks/Mac B., Kid Spy Series - Books 1-6 - Mac Barnett/1 Mac Undercover/Mac Undercover-Cover.jpg",
     title: "Mac Undercover-Part02",
     album: "Mac Undercover-Part02",
     year: 2022,
     artist: "Mac Undercover-Part02",
-    musicPath: "./assets/storybooks/Mac Undercover/Mac Undercover-Part02.mp3",
+    musicPath: "./assets/storybooks/Mac B., Kid Spy Series - Books 1-6 - Mac Barnett/1 Mac Undercover/Mac Undercover-Part02.mp3",
   },
 ];
 
+async function getData() {
+  const url = "./assets/js/storybooks.json";
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`);
+    }
+
+    const json = await response.json();
+    console.log(json);
+  } catch (error) {
+    console.error(error.message);
+  }
+}
 
 
 /**
