@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FAQ RAG Chat</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3d;
+    --accent: #7c6af5;
+    --accent2: #c084fc;
+    --text: #e8e8f0;
+    --muted: #7070a0;
+    --user-bubble: #1e1b4b;
+    --bot-bubble: #131320;
+    --glow: 0 0 30px rgba(124,106,245,0.15);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,106,245,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,106,245,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Header */
+  header {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 28px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--glow);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header-badge {
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* Main layout */
+  .main {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  /* Sidebar: FAQ Management */
+  .sidebar {
+    width: 300px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 18px 20px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .faq-count {
+    font-size: 11px;
+    color: var(--accent2);
+  }
+
+  .add-faq-area {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .add-faq-area input,
+  .add-faq-area textarea {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    border-radius: 6px;
+    padding: 8px 10px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .add-faq-area input:focus,
+  .add-faq-area textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .add-faq-area textarea { min-height: 60px; }
+
+  .btn-add {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+
+  .btn-add:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-add:active { transform: translateY(0); }
+
+  .faq-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 12px;
+  }
+
+  .faq-list::-webkit-scrollbar { width: 4px; }
+  .faq-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .faq-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    position: relative;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .faq-item-q {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--accent2);
+    margin-bottom: 4px;
+    padding-right: 20px;
+  }
+
+  .faq-item-a {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .faq-delete {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: none;
+    border: none;
+    color: var(--border);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+
+  .faq-delete:hover { color: #f87171; }
+
+  /* Chat area */
+  .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* API key bar */
+  .apikey-bar {
+    padding: 12px 24px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .apikey-bar label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .apikey-bar input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    border-radius: 6px;
+    padding: 7px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .apikey-bar input:focus { border-color: var(--accent); }
+
+  /* Messages */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .message {
+    display: flex;
+    gap: 12px;
+    animation: fadeIn 0.3s ease;
+    max-width: 80%;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .message.user { align-self: flex-end; flex-direction: row-reverse; }
+  .message.bot  { align-self: flex-start; }
+
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .avatar.user { background: var(--user-bubble); border: 1px solid var(--accent); }
+  .avatar.bot  { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+
+  .bubble {
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.65;
+    max-width: 100%;
+  }
+
+  .bubble.user {
+    background: var(--user-bubble);
+    border: 1px solid var(--accent);
+    border-bottom-right-radius: 2px;
+    color: #c4b5fd;
+  }
+
+  .bubble.bot {
+    background: var(--bot-bubble);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 2px;
+    color: var(--text);
+  }
+
+  .sources-tag {
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  .sources-tag span {
+    display: inline-block;
+    background: rgba(124,106,245,0.15);
+    border: 1px solid rgba(124,106,245,0.3);
+    color: var(--accent2);
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin: 2px 3px 2px 0;
+    font-size: 10px;
+  }
+
+  /* Typing indicator */
+  .typing .bubble {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 14px 18px;
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.6; }
+    30% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  /* Empty state */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    opacity: 0.4;
+    pointer-events: none;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .empty-icon { font-size: 40px; }
+
+  .empty-state p {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  /* Input bar */
+  .input-bar {
+    padding: 16px 24px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .input-bar textarea {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    border-radius: 10px;
+    padding: 11px 14px;
+    resize: none;
+    outline: none;
+    min-height: 44px;
+    max-height: 120px;
+    line-height: 1.5;
+    transition: border-color 0.2s;
+  }
+
+  .input-bar textarea:focus { border-color: var(--accent); }
+
+  .btn-send {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(124,106,245,0.3);
+  }
+
+  .btn-send:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124,106,245,0.4); }
+  .btn-send:active { transform: translateY(0); }
+  .btn-send:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* Notification */
+  .notif {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 12px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    z-index: 100;
+    animation: fadeIn 0.2s ease;
+    box-shadow: var(--glow);
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .sidebar { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🔮</div>
+    <span class="logo-text">FAQ·RAG</span>
+  </div>
+  <div class="header-badge">Retrieval Augmented</div>
+</header>
+
+<div class="main">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Knowledge Base</div>
+      <div class="faq-count" id="faqCount">0 entries loaded</div>
+    </div>
+
+    <div class="add-faq-area">
+      <input id="faqQ" placeholder="Question..." />
+      <textarea id="faqA" placeholder="Answer..."></textarea>
+      <button class="btn-add" onclick="addFAQ()">+ ADD ENTRY</button>
+    </div>
+
+    <div class="faq-list" id="faqList"></div>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat-area">
+    <div class="apikey-bar">
+      <label>API Key</label>
+      <input type="password" id="apiKey" placeholder="sk-ant-..." />
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">💬</div>
+        <p>Add FAQ entries and start chatting.<br/>The model retrieves relevant FAQs and answers your question.</p>
+      </div>
+    </div>
+
+    <div class="input-bar">
+      <textarea id="userInput" placeholder="Ask anything..." rows="1"
+        onkeydown="handleKey(event)"
+        oninput="autoResize(this)"></textarea>
+      <button class="btn-send" id="sendBtn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  /* ─── FAQ Store ─────────────────────────────────────────── */
+  let faqs = [
+    { q: "What is your return policy?", a: "We offer a 30-day hassle-free return policy. Items must be unused and in original packaging. Contact support@example.com to initiate a return." },
+    { q: "How long does shipping take?", a: "Standard shipping takes 5–7 business days. Express shipping (2–3 days) is available at checkout. International orders may take 10–14 days." },
+    { q: "Do you offer customer support?", a: "Yes! Our support team is available 24/7 via live chat, email at support@example.com, and phone at 1-800-555-0100." },
+    { q: "How do I reset my password?", a: "Go to the login page and click 'Forgot Password'. Enter your email and we'll send a reset link within 2 minutes. Check your spam folder if you don't see it." },
+    { q: "Can I change or cancel my order?", a: "Orders can be modified or cancelled within 1 hour of placement. After that, the order enters processing and changes may not be possible." },
+  ];
+
+  function renderFAQs() {
+    const list = document.getElementById('faqList');
+    list.innerHTML = '';
+    faqs.forEach((f, i) => {
+      list.innerHTML += `
+        <div class="faq-item">
+          <div class="faq-item-q">${escHtml(f.q)}</div>
+          <div class="faq-item-a">${escHtml(f.a)}</div>
+          <button class="faq-delete" onclick="deleteFAQ(${i})">×</button>
+        </div>`;
+    });
+    document.getElementById('faqCount').textContent = `${faqs.length} entr${faqs.length === 1 ? 'y' : 'ies'} loaded`;
+  }
+
+  function addFAQ() {
+    const q = document.getElementById('faqQ').value.trim();
+    const a = document.getElementById('faqA').value.trim();
+    if (!q || !a) { showNotif('⚠️ Both question and answer are required.'); return; }
+    faqs.push({ q, a });
+    document.getElementById('faqQ').value = '';
+    document.getElementById('faqA').value = '';
+    renderFAQs();
+    showNotif('✅ FAQ entry added!');
+  }
+
+  function deleteFAQ(i) {
+    faqs.splice(i, 1);
+    renderFAQs();
+  }
+
+  /* ─── RAG: Simple keyword similarity retrieval ───────────── */
+  function retrieveRelevant(query, topK = 3) {
+    const words = query.toLowerCase().split(/\W+/).filter(Boolean);
+    const scored = faqs.map((f, i) => {
+      const hay = (f.q + ' ' + f.a).toLowerCase();
+      const score = words.reduce((s, w) => s + (hay.includes(w) ? 1 : 0), 0);
+      return { ...f, score, i };
+    });
+    return scored.sort((a, b) => b.score - a.score).slice(0, topK).filter(f => f.score > 0);
+  }
+
+  /* ─── Chat ───────────────────────────────────────────────── */
+  let history = [];
+  let isLoading = false;
+
+  async function sendMessage() {
+    const input = document.getElementById('userInput');
+    const apiKey = document.getElementById('apiKey').value.trim();
+    const text = input.value.trim();
+
+    if (!text) return;
+    if (!apiKey) { showNotif('⚠️ Please enter your Anthropic API key.'); return; }
+    if (isLoading) return;
+
+    // Hide empty state
+    document.getElementById('emptyState').style.display = 'none';
+
+    appendMessage('user', text);
+    history.push({ role: 'user', content: text });
+    input.value = '';
+    autoResize(input);
+
+    // RAG retrieval
+    const relevant = retrieveRelevant(text);
+    let context = '';
+    let sourceLabels = [];
+    if (relevant.length > 0) {
+      context = '### Retrieved FAQ Entries (use these to answer the user):\n\n';
+      relevant.forEach((f, idx) => {
+        context += `**FAQ ${idx + 1}:**\nQ: ${f.q}\nA: ${f.a}\n\n`;
+        sourceLabels.push(`FAQ: ${f.q.slice(0, 40)}${f.q.length > 40 ? '…' : ''}`);
+      });
+    } else {
+      context = '### No relevant FAQ entries found. Answer based on general knowledge or state you don\'t have specific info.\n\n';
+    }
+
+    const systemPrompt = `You are a helpful customer support assistant powered by a FAQ knowledge base.
+Answer the user's question using ONLY the retrieved FAQ entries provided. 
+Be concise, friendly, and accurate. If the FAQ entries don't cover the question, say so politely.
+
+${context}`;
+
+    // Show typing
+    const typingId = 'typing-' + Date.now();
+    appendTyping(typingId);
+    setLoading(true);
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: history
+        })
+      });
+
+      const data = await res.json();
+      removeTyping(typingId);
+
+      if (data.error) {
+        showNotif('❌ API Error: ' + data.error.message);
+        history.pop();
+        setLoading(false);
+        return;
+      }
+
+      const reply = data.content?.[0]?.text || 'Sorry, I could not generate a response.';
+      history.push({ role: 'assistant', content: reply });
+      appendMessage('bot', reply, sourceLabels);
+
+    } catch (err) {
+      removeTyping(typingId);
+      showNotif('❌ Request failed: ' + err.message);
+      history.pop();
+    }
+
+    setLoading(false);
+    scrollToBottom();
+  }
+
+  function appendMessage(role, text, sources = []) {
+    const msgs = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = `message ${role}`;
+
+    const sourceHTML = sources.length > 0
+      ? `<div class="sources-tag">📎 Sources: ${sources.map(s => `<span>${escHtml(s)}</span>`).join('')}</div>`
+      : '';
+
+    div.innerHTML = `
+      <div class="avatar ${role}">${role === 'user' ? '👤' : '🤖'}</div>
+      <div class="bubble ${role}">${escHtml(text).replace(/\n/g, '<br>')}${sourceHTML}</div>`;
+    msgs.appendChild(div);
+    scrollToBottom();
+  }
+
+  function appendTyping(id) {
+    const msgs = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'message bot typing';
+    div.id = id;
+    div.innerHTML = `
+      <div class="avatar bot">🤖</div>
+      <div class="bubble bot"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+    msgs.appendChild(div);
+    scrollToBottom();
+  }
+
+  function removeTyping(id) {
+    document.getElementById(id)?.remove();
+  }
+
+  function setLoading(v) {
+    isLoading = v;
+    document.getElementById('sendBtn').disabled = v;
+  }
+
+  function scrollToBottom() {
+    const msgs = document.getElementById('messages');
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  /* ─── Helpers ──────────────────────────────────────────── */
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  let notifTimer;
+  function showNotif(msg) {
+    clearTimeout(notifTimer);
+    document.querySelector('.notif')?.remove();
+    const d = document.createElement('div');
+    d.className = 'notif';
+    d.textContent = msg;
+    document.body.appendChild(d);
+    notifTimer = setTimeout(() => d.remove(), 3000);
+  }
+
+  /* ─── Init ─────────────────────────────────────────────── */
+  renderFAQs();
+</script>
+</body>
+</html>

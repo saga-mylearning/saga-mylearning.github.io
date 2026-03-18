@@ -1,0 +1,35 @@
+python -m venv llama-finetune
+.\\llama-finetune\\Scripts\\Activate.ps1 
+pip install langchain langchain-community langchain-openai langchain-chroma pypdf  # for PDF support
+# or use: pip install langchain langchain-community langchain-ollama chromadb  # for local models
+
+C:\Users\Sree\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install --upgrade pip
+
+
+Fixed! ✅
+The error ModuleNotFoundError: No module named 'langchain_community' happens because LangChain split its packages. You need to install langchain-community separately.
+Quick Fix (Run this command)
+Bashpip install langchain-community
+Best Practice – Install All Required Packages at Once
+Run this single command to install everything you need for the RAG script:
+Bashpip install langchain langchain-community langchain-openai langchain-chroma pypdf
+If you're using Ollama (local models) instead of OpenAI, use:
+Bashpip install langchain langchain-community langchain-ollama langchain-chroma pypdf
+After Installing
+
+Close and reopen your terminal / VS Code / Jupyter Notebook (important!)
+Run your script again:
+
+Bashpython rag_faq.py
+Still Getting the Error?
+Try these extra steps:
+Bash# Upgrade pip first
+pip install --upgrade pip
+
+# Force reinstall
+pip install --upgrade --force-reinstall langchain-community langchain
+
+# If using virtual environment (recommended)
+python -m pip install langchain-community
+Or if you're using Conda:
+Bashconda install -c conda-forge langchain-community
